@@ -60,7 +60,7 @@ const sortedItems = sortCampaigns(data.items, sortBy, valueType);
       </p>
     </header>
     <section>
-      <h2 class="text-xl font-medium mb-4">Statistieken</h2>
+      <h2 class="text-xl font-medium mb-6">Statistieken</h2>
       <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
         <div class="border border-gray-300 rounded py-4 px-5">
           <p class="text-3xl font-semibold tabular-nums">
@@ -82,7 +82,7 @@ const sortedItems = sortCampaigns(data.items, sortBy, valueType);
     </section>
     <section>
       <div
-        class="flex flex-wrap gap-x-8 gap-y-2 items-center justify-between mb-4">
+        class="flex flex-wrap gap-x-8 gap-y-2 items-center justify-between mb-2">
         <h2 class="text-xl font-medium">Campagnes</h2>
         <form method="get" action="/" class="flex gap-2">
           {
@@ -126,6 +126,9 @@ const sortedItems = sortCampaigns(data.items, sortBy, valueType);
           </select>
         </form>
       </div>
+      <p class="text-gray-600 mb-6">
+        Klik op een campagne voor meer informatie.
+      </p>
       <div class="grid border border-gray-300 rounded divide-y divide-gray-300">
         {
           sortedItems
