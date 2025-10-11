@@ -17,6 +17,8 @@ const showAllCampaigns = url.searchParams.get('toon-alle-campagnes') === 'true';
 const sortBy = (url.searchParams.get('sorteer') || 'grootste') as SortOption;
 const valueType = (url.searchParams.get('waarde') || 'betaald') as ValueType;
 
+const sortedItems = sortCampaigns(data.items, sortBy, valueType);
+
 const totalSpent = data.items.reduce(
   (acc, item) => acc + getValue(item, 'betaald'),
   0
@@ -35,7 +37,12 @@ const lastUpdateDate = new Date(
   Math.max(...data.items.map((item) => new Date(item.date_published).getTime()))
 );
 
-const sortedItems = sortCampaigns(data.items, sortBy, valueType);
+Astro.response.headers.set('Last-Modified', lastUpdateDate.toUTCString());
+
+Astro.response.headers.set(
+  'Cache-Control',
+  'public, max-age=300, s-maxage=300'
+);
 ---
 
 <Layout>
@@ -43,8 +50,8 @@ const sortedItems = sortCampaigns(data.items, sortBy, valueType);
     <header>
       <h1 class="text-2xl font-semibold mb-3">Politieke Reclame Tracker</h1>
       <p class="text-gray-700 text-lg leading-relaxed">
-        Deze tracker geeft een overzicht van uitgaven aan politieke reclamecampagnes in
-        Nederland. Alle gegevens komen direct van <a
+        Deze tracker geeft een overzicht van uitgaven aan politieke
+        reclamecampagnes in Nederland. Alle gegevens komen direct van <a
           href="https://politiekereclame.nl"
           class="text-sky-600 hover:underline">politiekereclame.nl</a
         >, een platform opgezet door alle brancheorganisaties in de

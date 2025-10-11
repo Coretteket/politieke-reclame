@@ -1,8 +1,25 @@
 import type { CampaignData, CampaignItem } from './types';
+import { LRUCache } from 'lru-cache';
 
 const API_URL = 'https://politiekereclame.nl/api/public/statements/';
 
-export async function getCampaignData() {
+const CACHE_KEY = 'campaign-data';
+
+const cache = new LRUCache<string, CampaignDataResult>({
+  max: 1,
+  ttl: 5 * 60 * 1000,
+});
+
+export async function getCampaignData(): Promise<CampaignDataResult> {
+  const cached = cache.get(CACHE_KEY);
+
+  if (cached) {
+    console.log('Returning cached data');
+    return cached;
+  }
+
+  console.log('Fetching fresh data from API');
+
   const allItems: CampaignItem[] = [];
   const seenIds = new Set<string>();
   let page = 1;
@@ -44,8 +61,17 @@ export async function getCampaignData() {
     }
   }
 
-  return {
+  const result = {
     items: allItems,
     meta: { filter_count: allItems.length, total_count: totalCount },
   };
+
+  cache.set(CACHE_KEY, result);
+
+  return result;
 }
+
+type CampaignDataResult = {
+  items: CampaignItem[];
+  meta: { filter_count: number; total_count: number };
+};
