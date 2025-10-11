@@ -1,0 +1,12 @@
+services:
+  politiekereclame:
+    build: .
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.politiekereclame.rule=Host(`politiekereclame.qntn.io`)"
+      - "traefik.http.routers.politiekereclame.entrypoints=websecure"
+      - "traefik.http.routers.politiekereclame.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.politiekereclame.middlewares=myratelimit@file,mycompress@file,myhsts@file,mysecurityheaders@file"
