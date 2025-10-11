@@ -1,16 +1,193 @@
 ---
+import Layout from '../components/layout.astro';
+import { getCampaignData } from '../lib/data';
+import {
+  getValue,
+  currencyFormatter,
+  dateFormatter,
+  lastUpdateFormatter,
+  type ValueType,
+} from '../lib/utils';
+import { sortCampaigns, type SortOption } from '../lib/sort';
 
+const data = await getCampaignData();
+
+const url = new URL(Astro.request.url);
+const showAllCampaigns = url.searchParams.get('toon-alle-campagnes') === 'true';
+const sortBy = (url.searchParams.get('sorteer') || 'grootste') as SortOption;
+const valueType = (url.searchParams.get('waarde') || 'betaald') as ValueType;
+
+const totalSpent = data.items.reduce(
+  (acc, item) => acc + getValue(item, 'betaald'),
+  0
+);
+
+const totalWorth = data.items.reduce(
+  (acc, item) => acc + getValue(item, 'totaal'),
+  0
+);
+
+const maxCampaignValue = Math.max(
+  ...data.items.map((item) => getValue(item, valueType))
+);
+
+const lastUpdateDate = new Date(
+  Math.max(...data.items.map((item) => new Date(item.date_published).getTime()))
+);
+
+const sortedItems = sortCampaigns(data.items, sortBy, valueType);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout>
+  <main class="max-w-3xl mx-auto px-4 py-10 gap-10 grid">
+    <header>
+      <h1 class="text-2xl font-semibold mb-3">Politieke Reclame Tracker</h1>
+      <p class="text-gray-700 text-lg leading-relaxed">
+        Deze tracker geeft een overzicht van uitgaven aan politieke reclamecampagnes in
+        Nederland. Alle gegevens komen direct van <a
+          href="https://politiekereclame.nl"
+          class="text-sky-600 hover:underline">politiekereclame.nl</a
+        >, een platform opgezet door alle brancheorganisaties in de
+        reclamewereld om te voldoen aan de nieuwe Europese wetgeving voor
+        transparantie van politieke reclames. Lees meer over deze nieuwe
+        wetgeving via <a
+          href="https://openstate.eu/nl/2025/10/transparantie-politieke-reclame-heeft-nog-last-van-kinderziektes/"
+          class="text-sky-600 hover:underline">Open State Foundation</a
+        > of <a
+          href="https://www.volkskrant.nl/politiek/d66-geeft-meeste-uit-aan-verkiezingscampagne~b05dfc25/"
+          class="text-sky-600 hover:underline">de Volkskrant</a
+        >.
+      </p>
+    </header>
+    <section>
+      <h2 class="text-xl font-medium mb-4">Statistieken</h2>
+      <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div class="border border-gray-300 rounded py-4 px-5">
+          <p class="text-3xl font-semibold tabular-nums">
+            {currencyFormatter.format(totalSpent)}
+          </p>
+          <p class="text-gray-700">betaalde waarde</p>
+        </div>
+        <div class="border border-gray-300 rounded py-4 px-5">
+          <p class="text-3xl font-semibold tabular-nums">
+            {currencyFormatter.format(totalWorth)}
+          </p>
+          <p class="text-gray-700">totale waarde</p>
+        </div>
+        <div class="border border-gray-300 rounded py-4 px-5">
+          <p class="text-3xl font-semibold">{data.meta.filter_count}</p>
+          <p class="text-gray-700">campagnes</p>
+        </div>
+      </div>
+    </section>
+    <section>
+      <div
+        class="flex flex-wrap gap-x-8 gap-y-2 items-center justify-between mb-4">
+        <h2 class="text-xl font-medium">Campagnes</h2>
+        <form method="get" action="/" class="flex gap-2">
+          {
+            showAllCampaigns && (
+              <input type="hidden" name="toon-alle-campagnes" value="true" />
+            )
+          }
+          <select
+            name="waarde"
+            onchange="this.form.submit()"
+            class="px-3 py-2 text-gray-700 text-sm border border-gray-300 rounded hover:bg-gray-50 transition cursor-pointer">
+            <option value="betaald" selected={valueType === 'betaald'}>
+              Betaalde waarde
+            </option>
+            <option value="totaal" selected={valueType === 'totaal'}>
+              Totale waarde
+            </option>
+          </select>
+          <select
+            name="sorteer"
+            onchange="this.form.submit()"
+            class="px-3 py-2 text-gray-700 text-sm border border-gray-300 rounded hover:bg-gray-50 transition cursor-pointer">
+            <option value="grootste" selected={sortBy === 'grootste'}>
+              Grootste eerst
+            </option>
+            <option value="kleinste" selected={sortBy === 'kleinste'}>
+              Kleinste eerst
+            </option>
+            <option value="nieuwste" selected={sortBy === 'nieuwste'}>
+              Nieuwste eerst
+            </option>
+            <option value="oudste" selected={sortBy === 'oudste'}>
+              Oudste eerst
+            </option>
+            <option value="langste" selected={sortBy === 'langste'}>
+              Langste eerst
+            </option>
+            <option value="kortste" selected={sortBy === 'kortste'}>
+              Kortste eerst
+            </option>
+          </select>
+        </form>
+      </div>
+      <div class="grid border border-gray-300 rounded divide-y divide-gray-300">
+        {
+          sortedItems
+            .slice(0, showAllCampaigns ? sortedItems.length : 15)
+            .map((item) => (
+              <a
+                href={`https://politiekereclame.nl/transparantie-verklaringen/${item.public_id}`}
+                class="grid hover:bg-gray-50 transition grid-cols-[1fr_auto] gap-4 px-5 py-3 items-center relative">
+                <div
+                  class="bg-sky-300/20 absolute z-10"
+                  style={`width: ${Math.min(100, (getValue(item, valueType) / maxCampaignValue) * 100)}%; height: 100%;`}
+                />
+
+                <h3 class="truncate max-sm:grid text-gray-700">
+                  <span class="font-medium">
+                    {item.opdrachtgever_naam_organisatie}
+                  </span>
+                  <span class="max-sm:hidden">∙</span>
+                  <span class="opacity-80 max-sm:text-sm">
+                    {dateFormatter.formatRange(
+                      new Date(item.campagne_periode_startdatum),
+                      new Date(item.campagne_periode_einddatum)
+                    )}
+                  </span>
+                </h3>
+
+                <p class="font-semibold truncate text-right">
+                  {currencyFormatter.format(getValue(item, valueType))}
+                </p>
+              </a>
+            ))
+        }
+      </div>
+
+      <div class="mt-4">
+        <a
+          href={(() => {
+            const params = new URLSearchParams();
+            if (!showAllCampaigns) params.set('toon-alle-campagnes', 'true');
+            if (sortBy !== 'grootste') params.set('sorteer', sortBy);
+            if (valueType !== 'betaald') params.set('waarde', valueType);
+            return params.toString() ? `/?${params.toString()}` : '/';
+          })()}
+          class="inline-block px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition text-gray-700">
+          {showAllCampaigns ? 'Toon minder campagnes' : 'Toon alle campagnes'}
+        </a>
+      </div>
+    </section>
+    <footer
+      class="pt-6 border-t border-gray-200 text-gray-600 flex flex-col sm:flex-row sm:justify-between gap-2">
+      <p>
+        Laatste update: {lastUpdateFormatter.format(lastUpdateDate)}
+      </p>
+      <p>
+        <a
+          href="https://github.com/coretteket/politieke-reclame"
+          class="text-sky-600 hover:underline">Open source</a
+        > ontwikkeld door <a
+          href="https://quintencoret.nl"
+          class="text-sky-600 hover:underline">Quinten Coret</a
+        >
+      </p>
+    </footer>
+  </main>
+</Layout>
