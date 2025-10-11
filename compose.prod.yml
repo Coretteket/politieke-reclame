@@ -6,6 +6,8 @@ services:
       - NODE_ENV=production
     networks:
       - traefik
+    ports:
+      - "3000"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.politiekereclame.rule=Host(`politiekereclame.qntn.io`)"
