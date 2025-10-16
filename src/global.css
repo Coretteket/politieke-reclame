@@ -1,1 +1,5 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+:target {
+  scroll-margin-top: 2rem;
+}

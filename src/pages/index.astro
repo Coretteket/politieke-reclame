@@ -112,7 +112,7 @@ Astro.response.headers.set(
     <section>
       <div
         class="flex flex-wrap gap-x-8 gap-y-2 items-center justify-between mb-2">
-        <h2 class="text-xl font-medium dark:text-neutral-100">Campagnes</h2>
+        <h2 id="campagnes" class="text-xl font-medium dark:text-neutral-100">Campagnes</h2>
         <form method="get" action="/" class="flex gap-2">
           {
             showAllCampaigns && (
@@ -200,7 +200,7 @@ Astro.response.headers.set(
             if (!showAllCampaigns) params.set('toon-alle-campagnes', 'true');
             if (sortBy !== 'grootste-waarde') params.set('sorteer', sortBy);
             if (valueType !== 'betaald') params.set('waarde', valueType);
-            return params.toString() ? `/?${params.toString()}` : '/';
+            return params.toString() ? `/?${params.toString()}#campagnes` : '/#campagnes';
           })()}
           class="inline-block px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded hover:bg-gray-50 dark:hover:bg-neutral-900 transition text-gray-700 dark:text-neutral-300">
           {showAllCampaigns ? 'Toon minder campagnes' : 'Toon alle campagnes'}
