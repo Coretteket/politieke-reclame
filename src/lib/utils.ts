@@ -8,12 +8,6 @@ export const getValue = (item: CampaignItem, valueType: ValueType) => {
     : parseInt(item.betaalde_media_waarde_euro);
 };
 
-export const getDuration = (item: CampaignItem) => {
-  const start = new Date(item.campagne_periode_startdatum).getTime();
-  const end = new Date(item.campagne_periode_einddatum).getTime();
-  return end - start;
-};
-
 export const currencyFormatter = new Intl.NumberFormat('nl-NL', {
   style: 'currency',
   currency: 'EUR',

@@ -1,13 +1,13 @@
 import type { CampaignItem } from './types';
-import { getValue, getDuration } from './utils';
+import { getValue } from './utils';
 
-export type SortOption =
-  | 'grootste'
-  | 'kleinste'
-  | 'nieuwste'
-  | 'oudste'
-  | 'langste'
-  | 'kortste';
+export type SortOption = 
+  | 'grootste-waarde' 
+  | 'kleinste-waarde' 
+  | 'laatst-gepubliceerd' 
+  | 'vroegst-gepubliceerd'
+  | 'laatst-gestart'
+  | 'vroegst-gestart';
 
 export function sortCampaigns(
   items: CampaignItem[],
@@ -17,31 +17,39 @@ export function sortCampaigns(
   const sorted = [...items];
 
   switch (sortBy) {
-    case 'grootste':
+    case 'grootste-waarde':
       sorted.sort((a, b) => getValue(b, valueType) - getValue(a, valueType));
       break;
-    case 'kleinste':
+    case 'kleinste-waarde':
       sorted.sort((a, b) => getValue(a, valueType) - getValue(b, valueType));
       break;
-    case 'nieuwste':
+    case 'laatst-gepubliceerd':
+      sorted.sort(
+        (a, b) =>
+          new Date(b.date_published).getTime() -
+          new Date(a.date_published).getTime()
+      );
+      break;
+    case 'vroegst-gepubliceerd':
+      sorted.sort(
+        (a, b) =>
+          new Date(a.date_published).getTime() -
+          new Date(b.date_published).getTime()
+      );
+      break;
+    case 'laatst-gestart':
       sorted.sort(
         (a, b) =>
           new Date(b.campagne_periode_startdatum).getTime() -
           new Date(a.campagne_periode_startdatum).getTime()
       );
       break;
-    case 'oudste':
+    case 'vroegst-gestart':
       sorted.sort(
         (a, b) =>
           new Date(a.campagne_periode_startdatum).getTime() -
           new Date(b.campagne_periode_startdatum).getTime()
       );
-      break;
-    case 'langste':
-      sorted.sort((a, b) => getDuration(b) - getDuration(a));
-      break;
-    case 'kortste':
-      sorted.sort((a, b) => getDuration(a) - getDuration(b));
       break;
   }
 

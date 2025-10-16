@@ -14,7 +14,7 @@ const data = await getCampaignData();
 
 const url = new URL(Astro.request.url);
 const showAllCampaigns = url.searchParams.get('toon-alle-campagnes') === 'true';
-const sortBy = (url.searchParams.get('sorteer') || 'grootste') as SortOption;
+const sortBy = (url.searchParams.get('sorteer') || 'grootste-waarde') as SortOption;
 const valueType = (url.searchParams.get('waarde') || 'betaald') as ValueType;
 
 const sortedItems = sortCampaigns(data.items, sortBy, valueType);
@@ -134,23 +134,23 @@ Astro.response.headers.set(
             name="sorteer"
             onchange="this.form.submit()"
             class="px-3 py-2 text-gray-700 dark:text-neutral-300 text-sm border border-gray-300 dark:border-neutral-700 rounded hover:bg-gray-50 dark:hover:bg-neutral-800 dark:bg-neutral-900 transition cursor-pointer">
-            <option value="grootste" selected={sortBy === 'grootste'}>
-              Grootste eerst
+            <option value="grootste-waarde" selected={sortBy === 'grootste-waarde'}>
+              Grootste waarde eerst
             </option>
-            <option value="kleinste" selected={sortBy === 'kleinste'}>
-              Kleinste eerst
+            <option value="kleinste-waarde" selected={sortBy === 'kleinste-waarde'}>
+              Kleinste waarde eerst
             </option>
-            <option value="nieuwste" selected={sortBy === 'nieuwste'}>
-              Nieuwste eerst
+            <option value="laatst-gepubliceerd" selected={sortBy === 'laatst-gepubliceerd'}>
+              Laatst gepubliceerd eerst
             </option>
-            <option value="oudste" selected={sortBy === 'oudste'}>
-              Oudste eerst
+            <option value="vroegst-gepubliceerd" selected={sortBy === 'vroegst-gepubliceerd'}>
+              Vroegst gepubliceerd eerst
             </option>
-            <option value="langste" selected={sortBy === 'langste'}>
-              Langste eerst
+            <option value="laatst-gestart" selected={sortBy === 'laatst-gestart'}>
+              Laatst gestart eerst
             </option>
-            <option value="kortste" selected={sortBy === 'kortste'}>
-              Kortste eerst
+            <option value="vroegst-gestart" selected={sortBy === 'vroegst-gestart'}>
+              Vroegst gestart eerst
             </option>
           </select>
         </form>
@@ -198,7 +198,7 @@ Astro.response.headers.set(
           href={(() => {
             const params = new URLSearchParams();
             if (!showAllCampaigns) params.set('toon-alle-campagnes', 'true');
-            if (sortBy !== 'grootste') params.set('sorteer', sortBy);
+            if (sortBy !== 'grootste-waarde') params.set('sorteer', sortBy);
             if (valueType !== 'betaald') params.set('waarde', valueType);
             return params.toString() ? `/?${params.toString()}` : '/';
           })()}
