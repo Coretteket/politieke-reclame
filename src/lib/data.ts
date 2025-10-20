@@ -1,4 +1,8 @@
-import type { CampaignData, CampaignItem } from './types';
+import {
+  CampaignItemSchema,
+  LenientCampaignDataSchema,
+  type CampaignItem,
+} from './types';
 import { LRUCache } from 'lru-cache';
 
 const API_URL = 'https://politiekereclame.nl/api/public/statements/';
@@ -40,17 +44,36 @@ export async function getCampaignData(): Promise<CampaignDataResult> {
         break;
       }
 
-      const data = (await response.json()) as CampaignData;
+      const rawData = await response.json();
 
-      if (page === 1) {
-        totalPages = Math.ceil(data.meta.total_count / data.meta.limit);
-        totalCount = data.meta.total_count;
+      const result = LenientCampaignDataSchema.safeParse(rawData);
+
+      if (!result.success) {
+        console.warn(`Invalid data structure on page ${page}:`, result.error);
+        break;
       }
 
-      for (const item of data.items) {
-        if (!seenIds.has(item.id)) {
-          seenIds.add(item.id);
-          allItems.push(item);
+      if (page === 1) {
+        const meta = result.data.meta;
+        totalPages = Math.ceil(meta.total_count / meta.limit);
+        totalCount = meta.total_count;
+      }
+
+      for (const rawItem of result.data.items) {
+        const result = CampaignItemSchema.safeParse(rawItem);
+
+        if (!result.success) {
+          console.warn(
+            `Filtered out invalid item on page ${page}:`,
+            (rawItem as any)?.id || 'unknown',
+            result.error
+          );
+          continue;
+        }
+
+        if (!seenIds.has(result.data.id)) {
+          seenIds.add(result.data.id);
+          allItems.push(result.data);
         }
       }
 
