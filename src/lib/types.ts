@@ -4,6 +4,7 @@ export const CampaignItemSchema = z.object({
   id: z.string(),
   public_id: z.string(),
   date_published: z.string(),
+  name: z.string(),
   opdrachtgever_naam_organisatie: z.string(),
   campagne_periode_startdatum: z.string(),
   campagne_periode_einddatum: z.string(),

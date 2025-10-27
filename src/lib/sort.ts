@@ -1,10 +1,10 @@
 import type { CampaignItem } from './types';
 import { getValue } from './utils';
 
-export type SortOption = 
-  | 'grootste-waarde' 
-  | 'kleinste-waarde' 
-  | 'laatst-gepubliceerd' 
+export type SortOption =
+  | 'grootste-waarde'
+  | 'kleinste-waarde'
+  | 'laatst-gepubliceerd'
   | 'vroegst-gepubliceerd'
   | 'laatst-gestart'
   | 'vroegst-gestart';
@@ -12,7 +12,7 @@ export type SortOption =
 export function sortCampaigns(
   items: CampaignItem[],
   sortBy: SortOption,
-  valueType: 'betaald' | 'totaal'
+  valueType: 'betaald' | 'totaal' = 'betaald'
 ): CampaignItem[] {
   const sorted = [...items];
 
