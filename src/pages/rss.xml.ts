@@ -13,6 +13,7 @@ export async function GET(context: APIContext) {
     description:
       'Bekijk hoeveel geld er wordt uitgegeven aan politieke reclames in Nederland.',
     site: context.site!,
+    stylesheet: '/rss-style.xsl',
     items: sortedData.map((item) => ({
       title: `${
         item.opdrachtgever_naam_organisatie
