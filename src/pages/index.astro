@@ -12,29 +12,42 @@ import { sortCampaigns, type SortOption } from '../lib/sort';
 
 const data = await getCampaignData();
 
+const categories = new Map(
+  data.items.map((item) => [item.theme_link.id, item.theme_link.label])
+);
+
 const url = new URL(Astro.request.url);
 const showAllCampaigns = url.searchParams.get('toon-alle-campagnes') === 'true';
-const sortBy = (url.searchParams.get('sorteer') || 'grootste-waarde') as SortOption;
+const sortBy = (url.searchParams.get('sorteer') ||
+  'grootste-waarde') as SortOption;
 const valueType = (url.searchParams.get('waarde') || 'betaald') as ValueType;
+const category = Number(url.searchParams.get('categorie') || 0);
 
 const sortedItems = sortCampaigns(data.items, sortBy, valueType);
 
-const totalSpent = data.items.reduce(
+const filteredItems =
+  category === 0
+    ? sortedItems
+    : sortedItems.filter((item) => item.theme_link.id === category);
+
+const totalSpent = filteredItems.reduce(
   (acc, item) => acc + getValue(item, 'betaald'),
   0
 );
 
-const totalWorth = data.items.reduce(
+const totalWorth = filteredItems.reduce(
   (acc, item) => acc + getValue(item, 'totaal'),
   0
 );
 
 const maxCampaignValue = Math.max(
-  ...data.items.map((item) => getValue(item, valueType))
+  ...filteredItems.map((item) => getValue(item, valueType))
 );
 
 const lastUpdateDate = new Date(
-  Math.max(...data.items.map((item) => new Date(item.date_published).getTime()))
+  Math.max(
+    ...filteredItems.map((item) => new Date(item.date_published).getTime())
+  )
 );
 
 Astro.response.headers.set('Last-Modified', lastUpdateDate.toUTCString());
@@ -102,7 +115,7 @@ Astro.response.headers.set(
         <div
           class="border border-gray-300 dark:border-neutral-700 rounded py-4 px-5 dark:bg-neutral-900">
           <p class="text-3xl font-semibold dark:text-neutral-100">
-            {data.meta.filter_count}
+            {filteredItems.length}
           </p>
           <p class="text-gray-700 dark:text-neutral-300">campagnes</p>
         </div>
@@ -111,14 +124,31 @@ Astro.response.headers.set(
 
     <section>
       <div
-        class="flex flex-wrap gap-x-8 gap-y-2 items-center justify-between mb-2">
-        <h2 id="campagnes" class="text-xl font-medium dark:text-neutral-100">Campagnes</h2>
-        <form method="get" action="/" class="flex gap-2">
+        class="flex flex-wrap gap-x-8 gap-y-4 items-center justify-between mb-2">
+        <h2 id="campagnes" class="text-xl font-medium dark:text-neutral-100">
+          Campagnes
+        </h2>
+        <form method="get" action="/" class="flex flex-wrap gap-2">
           {
             showAllCampaigns && (
               <input type="hidden" name="toon-alle-campagnes" value="true" />
             )
           }
+          <select
+            name="categorie"
+            onchange="this.form.submit()"
+            class="px-3 max-w-42 truncate py-2 text-gray-700 dark:text-neutral-300 text-sm border border-gray-300 dark:border-neutral-700 rounded hover:bg-gray-50 dark:hover:bg-neutral-800 dark:bg-neutral-900 transition cursor-pointer">
+            <option value="0" selected>Alle categorieën</option>
+            {
+              categories.entries().map(([id, label]) => (
+                <option
+                  value={id}
+                  selected={Number(url.searchParams.get('categorie')) === id}>
+                  {label}
+                </option>
+              ))
+            }
+          </select>
           <select
             name="waarde"
             onchange="this.form.submit()"
@@ -134,35 +164,47 @@ Astro.response.headers.set(
             name="sorteer"
             onchange="this.form.submit()"
             class="px-3 py-2 text-gray-700 dark:text-neutral-300 text-sm border border-gray-300 dark:border-neutral-700 rounded hover:bg-gray-50 dark:hover:bg-neutral-800 dark:bg-neutral-900 transition cursor-pointer">
-            <option value="grootste-waarde" selected={sortBy === 'grootste-waarde'}>
+            <option
+              value="grootste-waarde"
+              selected={sortBy === 'grootste-waarde'}>
               Grootste waarde eerst
             </option>
-            <option value="kleinste-waarde" selected={sortBy === 'kleinste-waarde'}>
+            <option
+              value="kleinste-waarde"
+              selected={sortBy === 'kleinste-waarde'}>
               Kleinste waarde eerst
             </option>
-            <option value="laatst-gepubliceerd" selected={sortBy === 'laatst-gepubliceerd'}>
+            <option
+              value="laatst-gepubliceerd"
+              selected={sortBy === 'laatst-gepubliceerd'}>
               Laatst gepubliceerd eerst
             </option>
-            <option value="vroegst-gepubliceerd" selected={sortBy === 'vroegst-gepubliceerd'}>
+            <option
+              value="vroegst-gepubliceerd"
+              selected={sortBy === 'vroegst-gepubliceerd'}>
               Vroegst gepubliceerd eerst
             </option>
-            <option value="laatst-gestart" selected={sortBy === 'laatst-gestart'}>
+            <option
+              value="laatst-gestart"
+              selected={sortBy === 'laatst-gestart'}>
               Laatst gestart eerst
             </option>
-            <option value="vroegst-gestart" selected={sortBy === 'vroegst-gestart'}>
+            <option
+              value="vroegst-gestart"
+              selected={sortBy === 'vroegst-gestart'}>
               Vroegst gestart eerst
             </option>
           </select>
         </form>
       </div>
-      <p class="text-gray-600 dark:text-neutral-400 mb-6">
+      <p class="text-gray-600 dark:text-neutral-400 mt-4 mb-6">
         Klik op een campagne voor meer informatie.
       </p>
       <div
         class="grid border border-gray-300 dark:border-neutral-700 rounded divide-y divide-gray-300 dark:divide-neutral-700">
         {
-          sortedItems
-            .slice(0, showAllCampaigns ? sortedItems.length : 15)
+          filteredItems
+            .slice(0, showAllCampaigns ? filteredItems.length : 15)
             .map((item) => (
               <a
                 href={`https://politiekereclame.nl/transparantie-verklaringen/${item.public_id}`}
@@ -200,7 +242,9 @@ Astro.response.headers.set(
             if (!showAllCampaigns) params.set('toon-alle-campagnes', 'true');
             if (sortBy !== 'grootste-waarde') params.set('sorteer', sortBy);
             if (valueType !== 'betaald') params.set('waarde', valueType);
-            return params.toString() ? `/?${params.toString()}#campagnes` : '/#campagnes';
+            return params.toString()
+              ? `/?${params.toString()}#campagnes`
+              : '/#campagnes';
           })()}
           class="inline-block px-4 py-2 border border-gray-300 dark:border-neutral-700 rounded hover:bg-gray-50 dark:hover:bg-neutral-900 transition text-gray-700 dark:text-neutral-300">
           {showAllCampaigns ? 'Toon minder campagnes' : 'Toon alle campagnes'}
@@ -213,8 +257,10 @@ Astro.response.headers.set(
       <p>
         Laatst gepubliceerde campagne: {
           lastUpdateFormatter.format(lastUpdateDate)
-        } (<a href="/rss.xml" class="text-sky-600 dark:text-sky-300 hover:underline"
-          >RSS</a>)
+        } (<a
+          href="/rss.xml"
+          class="text-sky-600 dark:text-sky-300 hover:underline">RSS</a
+        >)
       </p>
       <p>
         <a

@@ -5,6 +5,7 @@ export const CampaignItemSchema = z.object({
   public_id: z.string(),
   date_published: z.string(),
   name: z.string(),
+  theme_link: z.object({ id: z.number(), label: z.string() }),
   opdrachtgever_naam_organisatie: z.string(),
   campagne_periode_startdatum: z.string(),
   campagne_periode_einddatum: z.string(),
