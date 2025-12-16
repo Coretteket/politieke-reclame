@@ -242,6 +242,7 @@ Astro.response.headers.set(
             if (!showAllCampaigns) params.set('toon-alle-campagnes', 'true');
             if (sortBy !== 'grootste-waarde') params.set('sorteer', sortBy);
             if (valueType !== 'betaald') params.set('waarde', valueType);
+            if (category !== 0) params.set('categorie', category.toString());
             return params.toString()
               ? `/?${params.toString()}#campagnes`
               : '/#campagnes';
